@@ -4,7 +4,8 @@ const { v4: uuidv4 } = require('uuid')
 const app = express()
 const pool = require('./db')
 const cors = require('cors')
-
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 app.use(cors())
 app.use(express.json())
 
@@ -39,7 +40,61 @@ app.post('/todos', async (req, res) => {
 })
 
 //Edit task
-app.put('')
+app.put('/todos/:id', async (req, res) => {
+	const { id } = req.params
+	const { user_email, title, progress, date } = req.body
+
+	try {
+		const editTask = await pool.query(
+			`UPDATE todos SET user_email = $1, title = $2, progress = $3, date = $4 WHERE id = $5;`,
+			[user_email, title, progress, date, id]
+		)
+		res.json(editTask)
+	} catch (error) {
+		console.log(error)
+	}
+})
+
+//Delete task
+app.delete('/todos/:id', async (req, res) => {
+	const { id } = req.params
+	try {
+		const deleteTask = await pool.query('DELETE FROM todos WHERE id = $1;', [
+			id,
+		])
+		res.json(deleteTask)
+	} catch (error) {
+		console.log(error)
+	}
+})
+
+// SignUp
+app.post('/signup', async (req, res) => {
+	const { email, password } = req.body
+	const salt = bcrypt.genSaltSync(10)
+	const hashedPassword = bcrypt.hashSync(password, salt)
+	try {
+		const signUp = await pool.query(
+			`INSERT INTO users (email, hashed_password) VALUES ($1, $2)`,
+			[email, hashedPassword]
+		)
+
+		const token = jwt.sign({ email }, 'secret', { expiresIn: '1hr' })
+		res.json({ email, token })
+	} catch (error) {
+		res.json({ detail: error.detail })
+	}
+})
+
+//LogIn
+app.post('/login', (req, res) => {
+	const { email, password } = req.body
+
+	try {
+	} catch (error) {
+		console.log(error)
+	}
+})
 
 app.listen(PORT, () => {
 	console.log(`Server running on PORT ${PORT}`)

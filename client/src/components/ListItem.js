@@ -5,6 +5,19 @@ import TickIcon from './TickIcon'
 
 const ListItem = ({ task, getData }) => {
 	const [showModal, setShowModal] = useState(false)
+
+	const deleteTask = async () => {
+		try {
+			const response = await fetch(`http://localhost:8000/todos/${task.id}`, {
+				method: 'DELETE',
+			})
+			if (response.status === 200) {
+				getData()
+			}
+		} catch (error) {
+			console.log(error)
+		}
+	}
 	return (
 		<li className='list-item'>
 			<div className='info-container'>
@@ -16,7 +29,9 @@ const ListItem = ({ task, getData }) => {
 				<button className='edit' onClick={() => setShowModal(true)}>
 					EDIT
 				</button>
-				<button className='delete'>DELETE</button>
+				<button className='delete' onClick={deleteTask}>
+					DELETE
+				</button>
 			</div>
 			{showModal && (
 				<Modal
